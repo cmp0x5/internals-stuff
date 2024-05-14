@@ -12,10 +12,20 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    printf("(+) process started!\npid: %ld, process handle: %ld\ntid: %ld, thread handle: %ld\n", pi.dwProcessId, pi.hProcess, pi.dwThreadId, pi.hThread);
+    DWORD PID = pi.dwProcessId;
+    HANDLE hProcess = pi.hProcess;
+
+    DWORD TID = pi.dwThreadId;
+    HANDLE hThread = pi.hThread;
+
+    /* handles in hex */
+    printf("(+) process started!\npid: %ld, process handle: 0x%x\ntid: %ld, thread handle: 0x%x\n", PID, hProcess, TID, hThread);
+    
     WaitForSingleObject(pi.hProcess, INFINITE);
     printf("(+) finished! exiting...\n");
-    CloseHandle(pi.hProcess);
+    
+    CloseHandle(hThread);
+    CloseHandle(hProcess);
 
     return EXIT_SUCCESS;
 }
