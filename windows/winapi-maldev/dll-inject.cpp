@@ -10,7 +10,7 @@ HANDLE hProcess, hThread = NULL;
 HMODULE hKernel32 = NULL;
 LPVOID lpThreadProc = NULL;
 
-wchar_t dllPath[MAX_PATH] = L"randomDLL.dll";
+wchar_t dllPath[MAX_PATH] = L"path\\to\\randomDLL.dll";
 size_t dllPathSize = sizeof(dllPath);
 
 int main(int argc, char* argv[])
