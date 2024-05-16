@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
 {
 
     DWORD PID = 0;
+    DWORD TID = 0;
     HANDLE hProcess = NULL;
     HANDLE hThread = NULL;
     LPVOID lpThreadProc = NULL;
