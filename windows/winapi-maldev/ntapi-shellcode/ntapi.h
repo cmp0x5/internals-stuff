@@ -39,12 +39,6 @@ typedef struct _CLIENT_ID
     VOID* UniqueThread;                                                     //0x8
 } CLIENT_ID, * PCLIENT_ID;
 
-typedef struct _PS_ATTRIBUTE_LIST
-{
-    SIZE_T TotalLength;
-    PS_ATTRIBUTE Attributes[1];
-} PS_ATTRIBUTE_LIST, *PPS_ATTRIBUTE_LIST;
-
 typedef struct _PS_ATTRIBUTE
 {
     ULONG_PTR Attribute;
@@ -56,6 +50,12 @@ typedef struct _PS_ATTRIBUTE
     };
     PSIZE_T ReturnLength;
 } PS_ATTRIBUTE, *PPS_ATTRIBUTE;
+
+typedef struct _PS_ATTRIBUTE_LIST
+{
+    SIZE_T TotalLength;
+    PS_ATTRIBUTE Attributes[1];
+} PS_ATTRIBUTE_LIST, *PPS_ATTRIBUTE_LIST;
 
 /* function prototypes */
 
@@ -82,4 +82,21 @@ typedef NTSTATUS(NTAPI* NtCreateThreadEx) (
 
 typedef NTSTATUS(NTAPI* NtClose) (
     _In_ _Post_ptr_invalid_ HANDLE Handle
+);
+
+typedef NTSTATUS(NTAPI* NtAllocateVirtualMemory) (
+    _In_ HANDLE ProcessHandle,
+    _Inout_ _At_(*BaseAddress, _Readable_bytes_(*RegionSize) _Writable_bytes_(*RegionSize) _Post_readable_byte_size_(*RegionSize)) PVOID *BaseAddress,
+    _In_ ULONG_PTR ZeroBits,
+    _Inout_ PSIZE_T RegionSize,
+    _In_ ULONG AllocationType,
+    _In_ ULONG Protect
+);
+
+typedef NTSTATUS(NTAPI* NtWriteVirtualMemory) (
+    _In_ HANDLE ProcessHandle,
+    _In_opt_ PVOID BaseAddress,
+    _In_reads_bytes_(BufferSize) PVOID Buffer,
+    _In_ SIZE_T BufferSize,
+    _Out_opt_ PSIZE_T NumberOfBytesWritten
 );
