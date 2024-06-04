@@ -66,6 +66,23 @@ typedef NTSTATUS(NTAPI* NtOpenProcess) (
     _In_opt_ PCLIENT_ID I_NsClient
 );
 
+typedef NTSTATUS(NTAPI* NtAllocateVirtualMemory) (
+    _In_ HANDLE ProcessHandle,
+    _Inout_ _At_(*BaseAddress, _Readable_bytes_(*RegionSize) _Writable_bytes_(*RegionSize) _Post_readable_byte_size_(*RegionSize)) PVOID *BaseAddress,
+    _In_ ULONG_PTR ZeroBits,
+    _Inout_ PSIZE_T RegionSize,
+    _In_ ULONG AllocationType,
+    _In_ ULONG Protect
+);
+
+typedef NTSTATUS(NTAPI* NtWriteVirtualMemory) (
+    _In_ HANDLE ProcessHandle,
+    _In_opt_ PVOID BaseAddress,
+    _In_reads_bytes_(BufferSize) PVOID Buffer,
+    _In_ SIZE_T BufferSize,
+    _Out_opt_ PSIZE_T NumberOfBytesWritten
+);
+
 typedef NTSTATUS(NTAPI* NtCreateThreadEx) (
     _Out_ PHANDLE ThreadHandle,
     _In_ ACCESS_MASK DesiredAccess,
@@ -82,21 +99,4 @@ typedef NTSTATUS(NTAPI* NtCreateThreadEx) (
 
 typedef NTSTATUS(NTAPI* NtClose) (
     _In_ _Post_ptr_invalid_ HANDLE Handle
-);
-
-typedef NTSTATUS(NTAPI* NtAllocateVirtualMemory) (
-    _In_ HANDLE ProcessHandle,
-    _Inout_ _At_(*BaseAddress, _Readable_bytes_(*RegionSize) _Writable_bytes_(*RegionSize) _Post_readable_byte_size_(*RegionSize)) PVOID *BaseAddress,
-    _In_ ULONG_PTR ZeroBits,
-    _Inout_ PSIZE_T RegionSize,
-    _In_ ULONG AllocationType,
-    _In_ ULONG Protect
-);
-
-typedef NTSTATUS(NTAPI* NtWriteVirtualMemory) (
-    _In_ HANDLE ProcessHandle,
-    _In_opt_ PVOID BaseAddress,
-    _In_reads_bytes_(BufferSize) PVOID Buffer,
-    _In_ SIZE_T BufferSize,
-    _Out_opt_ PSIZE_T NumberOfBytesWritten
 );
