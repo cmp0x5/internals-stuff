@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     }
     okay("Allocated %ld bytes in process 0x%p", scSize, hProcess);
     
-    STATUS = write(hProcess, bAddress, sc, sizeof(sc), &bytesWritten);
+    STATUS = write(hProcess, bAddress, sc, sizeof(sc), &bytesWritten); //dont use scSize
     if (STATUS != STATUS_SUCCESS)
     {
         warn("Error: NtWriteVirtualMemory returned NTSTATUS 0x%lx. %ld bytes had been written", STATUS, bytesWritten);
