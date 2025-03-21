@@ -1,3 +1,4 @@
+# bof
 import socket, sys
 from struct import pack
 
