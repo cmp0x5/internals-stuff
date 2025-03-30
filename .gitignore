@@ -1,1 +1,6 @@
+*.gdb*
 *.zip
+*.id*
+*.nam
+*.til
+*.i64
